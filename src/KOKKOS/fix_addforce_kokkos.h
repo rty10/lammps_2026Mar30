@@ -23,59 +23,61 @@ FixStyle(addforce/kk/host,FixAddForceKokkos<LMPHostType>);
 #ifndef LMP_FIX_ADD_FORCE_KOKKOS_H
 #define LMP_FIX_ADD_FORCE_KOKKOS_H
 
-#include "fix_addforce.h"
+#include "fix_setforce.h"
 #include "kokkos_type.h"
-#include "kokkos_few.h"
 
 namespace LAMMPS_NS {
 
+struct s_double_3a {
+  double d0, d1, d2;
+  KOKKOS_INLINE_FUNCTION
+  s_double_3a() {
+    d0 = d1 = d2 = 0.0;
+  }
+  KOKKOS_INLINE_FUNCTION
+  s_double_3a& operator+=(const s_double_3a &rhs) {
+    d0 += rhs.d0;
+    d1 += rhs.d1;
+    d2 += rhs.d2;
+    return *this;
+  }
+};
+typedef s_double_3a double_3a;
+
 struct TagFixAddForceConstant{};
+
 struct TagFixAddForceNonConstant{};
 
 template<class DeviceType>
-class FixAddForceKokkos : public FixAddForce {
+class FixAddForceKokkos : public FixSetForce {
  public:
   typedef DeviceType device_type;
+  typedef double_3a value_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef double value_type[];
-  const int value_count = 10;
 
   FixAddForceKokkos(class LAMMPS *, int, char **);
   ~FixAddForceKokkos() override;
   void init() override;
   void post_force(int) override;
 
-// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixAddForceConstant, const int&, value_type) const;
+  void operator()(TagFixAddForceConstant, const int&, double_3a&) const;
 
-// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixAddForceNonConstant, const int&, value_type) const;
+  void operator()(TagFixAddForceNonConstant, const int&, double_3a&) const;
 
  private:
-  DAT::ttransform_kkfloat_2d k_sforce;
-  typename AT::t_kkfloat_2d_randomread d_sforce;
+  DAT::tdual_ffloat_2d k_sforce;
+  typename AT::t_ffloat_2d_randomread d_sforce;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkacc_1d_3 f;
-  typename AT::t_imageint_1d_randomread image;
+  typename AT::t_x_array_randomread x;
+  typename AT::t_f_array f;
   typename AT::t_int_1d_randomread mask;
-
-  Few<double,3> prd;
-  Few<double,6> h;
-  int triclinic;
-
-  DAT::ttransform_kkacc_1d_6 k_vatom;
-  typename AT::t_kkacc_1d_6 d_vatom;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void v_tally(value_type, int, KK_FLOAT*) const;
 };
 
 }
 
 #endif
 #endif
+
