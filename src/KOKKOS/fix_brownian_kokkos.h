@@ -23,10 +23,12 @@ FixStyle(brownian/kk/host,FixBrownianKokkos<LMPHostType>);
 #ifndef LMP_FIX_BROWNIAN_KOKKOS_H
 #define LMP_FIX_BROWNIAN_KOKKOS_H
 
+#include "atom_vec_ellipsoid_kokkos.h"
 #include "fix_brownian.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "Kokkos_Random.hpp"
+#include "rand_pool_wrap_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -44,16 +46,16 @@ namespace LAMMPS_NS {
         void cleanup_copy();
         void init() override;
         void initial_integrate(int) override;
-
+// NOLINTNEXTLINE
         KOKKOS_INLINE_FUNCTION
         void initial_integrate_item(int) const;
 
     private:
 
 
-        typename ArrayTypes<DeviceType>::t_x_array x;
-        typename ArrayTypes<DeviceType>::t_v_array v;
-        typename ArrayTypes<DeviceType>::t_f_array_const f;
+        typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr x;
+        typename ArrayTypes<DeviceType>::t_double_1d_3_lr v;
+        typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_const f;
         typename ArrayTypes<DeviceType>::t_int_1d type;
         typename ArrayTypes<DeviceType>::t_int_1d mask;
 
@@ -69,6 +71,7 @@ namespace LAMMPS_NS {
 
         FixBrownianKokkosInitialIntegrateFunctor(FixBrownianKokkos<DeviceType>* c_ptr):
                 c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
         KOKKOS_INLINE_FUNCTION
         void operator()(const int i) const {
             c.initial_integrate_item(i);

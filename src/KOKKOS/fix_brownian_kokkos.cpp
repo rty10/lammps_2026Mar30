@@ -17,6 +17,16 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "compute.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "math_extra_kokkos.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cmath>
 
@@ -72,6 +82,7 @@ void FixBrownianKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixBrownianKokkos<DeviceType>::initial_integrate_item(int i) const
 {
